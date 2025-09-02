@@ -1,9 +1,21 @@
 FROM amazonlinux:2
 
-# Remove curl-minimal and install curl, java-17-amazon-corretto, maven, git, unzip
-RUN yum remove -y curl-minimal && \
-    yum install -y curl java-17-amazon-corretto maven git unzip && \
+# Remove old curl-minimal and maven, install required tools
+RUN yum remove -y curl-minimal maven && \
+    yum install -y curl java-17-amazon-corretto git unzip wget tar && \
     yum clean all
+
+# Install Maven 3.8.8 manually
+RUN wget https://downloads.apache.org/maven/maven-3/3.8.8/binaries/apache-maven-3.8.8-bin.tar.gz && \
+    tar -xzf apache-maven-3.8.8-bin.tar.gz -C /opt && \
+    ln -s /opt/apache-maven-3.8.8 /opt/maven && \
+    rm apache-maven-3.8.8-bin.tar.gz
+
+ENV MAVEN_HOME=/opt/maven
+ENV PATH=${MAVEN_HOME}/bin:${PATH}
+
+# Verify Maven version (optional)
+RUN mvn -version
 
 # Set working directory
 WORKDIR /mnt/project
