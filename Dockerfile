@@ -1,7 +1,9 @@
-FROM amazonlinux:2023
+FROM amazonlinux:2
 
-# Install Java 17, Maven, Git, curl, unzip
-RUN dnf install -y java-17-amazon-corretto maven git curl unzip
+# Remove curl-minimal and install curl, java-17-amazon-corretto, maven, git, unzip
+RUN yum remove -y curl-minimal && \
+    yum install -y curl java-17-amazon-corretto maven git unzip && \
+    yum clean all
 
 # Set working directory
 WORKDIR /mnt/project
@@ -26,4 +28,4 @@ RUN cp /mnt/project/war-application/target/*.war /mnt/project/apache-tomcat-9.0.
 EXPOSE 8080
 
 # Start Tomcat
-CMD ["sh", "/mnt/project/apache-tomcat-9.0.108/bin/catalina.sh", "run"
+CMD ["sh", "/mnt/project/apache-tomcat-9.0.108/bin/catalina.sh", "run"]
