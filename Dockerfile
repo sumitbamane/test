@@ -1,15 +1,27 @@
-# Use the official Tomcat base image
-FROM tomcat:9-jdk11
+# Use official Tomcat image with JDK
+FROM tomcat:9.0-jdk17-openjdk
 
-# Set the working directory to the Tomcat webapps folder
-WORKDIR /usr/local/tomcat/webapps/
+# Maintainer information
+LABEL maintainer="your-email@example.com"
+LABEL description="WAR Application Docker Container"
 
-# Copy the .war file into the Tomcat webapps directory
-# This assumes Jenkins will place the WAR file in ./target/my-application.war
-COPY ./target/my-application.war ./ROOT.war
+# Remove default Tomcat applications
+RUN rm -rf /usr/local/tomcat/webapps/*
 
-# Expose port 8080 to allow access to the web application
+# Copy the WAR file to Tomcat webapps directory
+# The pipeline copies the WAR as "app.war" to the dockerfile directory
+COPY app.war /usr/local/tomcat/webapps/ROOT.war
+
+# Create application directory and set permissions
+RUN mkdir -p /usr/local/tomcat/webapps/ROOT && \
+    chown -R root:root /usr/local/tomcat/webapps/
+
+# Expose port 8080
 EXPOSE 8080
 
-# Command to start Tomcat when the container runs
+# Health check to verify application is running
+HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
+    CMD curl -f http://localhost:8080/ || exit 1
+
+# Start Tomcat
 CMD ["catalina.sh", "run"]
