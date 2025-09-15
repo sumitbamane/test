@@ -1,27 +1,19 @@
-# Use official Tomcat image with JDK
-FROM tomcat:9.0-jdk17-openjdk
+# Use official Tomcat image
+FROM tomcat:9.0.62-jdk11
 
-# Maintainer information
-LABEL maintainer="your-email@example.com"
-LABEL description="WAR Application Docker Container"
-
-# Remove default Tomcat applications
+# Remove default Tomcat webapps
 RUN rm -rf /usr/local/tomcat/webapps/*
 
-# Copy the WAR file to Tomcat webapps directory
-# The pipeline copies the WAR as "app.war" to the dockerfile directory
+# Copy WAR file as ROOT.war (this is crucial!)
 COPY app.war /usr/local/tomcat/webapps/ROOT.war
 
-# Create application directory and set permissions
-RUN mkdir -p /usr/local/tomcat/webapps/ROOT && \
-    chown -R root:root /usr/local/tomcat/webapps/
+# Explicitly extract WAR to ensure deployment
+RUN cd /usr/local/tomcat/webapps && \
+    unzip ROOT.war -d ROOT/ && \
+    chown -R root:root ROOT/
 
 # Expose port 8080
 EXPOSE 8080
-
-# Health check to verify application is running
-HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
-    CMD curl -f http://localhost:8080/ || exit 1
 
 # Start Tomcat
 CMD ["catalina.sh", "run"]
